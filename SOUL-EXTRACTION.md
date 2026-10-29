@@ -145,6 +145,27 @@ Important: the 4-bit original is the **judge**, the fp16 shards are the **extrac
 Never extract from the quantized copy — quant noise would pollute ΔW and fake a diffuse
 spectrum. Extraction always from fp16.
 
+### Field probe — working laptop (no GPU), 29 Oct 2026
+
+Stage 1 re-verified on a GPU-less work laptop (8 logical cores, 8.3 GB RAM, 290 GB free disk).
+Findings, for scheduling at another machine:
+
+- **CPU-only is confirmed sufficient for Stage 1.** Subtract + SVD never touches a GPU.
+- **Checkpoint format is ZIP** (probe: shard 1 starts `PK\x03\x04`) → `torch.load(...,
+  mmap=True)` works → the script streams **one matrix at a time** (~117 MB peak for the
+  biggest, `down_proj`), never the full 5 GB shard. This is the difference between "runs" and
+  "swaps to death" on a 8 GB machine. Legacy pickle would have killed it.
+- **Download total is ~29 GB, not ~22 GB** (earlier estimate halved the base by mistake):
+  Kisna shards 14.5 GB + base checkpoint 14.5 GB. Plan for the full 29.
+- **Measured pipe: 100 MiB in 13.8 s ≈ 7.6 MB/s (≈61 Mbps)** from the HF CDN (single range
+  request, 1 sample — treat as median).
+- **Wall-clock estimate:** ~1 h download + ~30–45 min CPU (224 SVDs via Gram trick, 8 threads)
+  ≈ **1.5–2 h total**. RAM headroom matters: ran at 2.9 GB free after closing browsers;
+  want ≥2 GB free for the float32 SVD workspace.
+
+Bottom line: Stage 1 is laptop-legal anywhere with ~30 GB disk and 8 GB RAM. Stage 2
+activation-dump is the part that wants the GPU machine.
+
 ---
 
 ## 6. Falsification
