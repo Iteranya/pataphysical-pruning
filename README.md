@@ -259,16 +259,16 @@ top and [`SHARPENER-DESIGN.md`](SHARPENER-DESIGN.md).
 | `COMPANION-THESIS.md` | **The product layer**: knowledge-bounded character clone — what all tracks are for |
 | `census.py` | activation sparsity census — the runnable artifact |
 | `EXPERIMENT-DESIGN.md` | full protocol: arms, sweep, metrics, falsification |
-| `REFIT-DESIGN.md` | Track 2: fold a frozen prefix into a synthetic KV cache (refit/coreset) |
-| `REFIT-DESIGN.md` §Track 3 | WildCat transplant: weighted neuron coreset + least-squares heal |
+| `REFIT-DESIGN.md` | Track A: fold a frozen prefix into a synthetic KV cache (refit/coreset) |
+| `REFIT-DESIGN.md` §Track B | WildCat transplant: weighted neuron coreset + least-squares heal |
 | `persona_pirate.md` | Corpus v2: pirate persona prompt + voice rules (Run 3 onward) |
-| `SOUL-EXTRACTION.md` | Track 4: extract persona delta from Kisna-7B, transplant onto shrunken body |
-| `SHARPENER-DESIGN.md` | Track 5: persona-sharpen DeepSeek-V4.1-Flash via MoE expert census + inner cutting |
+| `SOUL-EXTRACTION.md` | Track C: extract persona delta from Kisna-7B, transplant onto shrunken body |
+| `SHARPENER-DESIGN.md` | Track D: persona-sharpen DeepSeek-V4.1-Flash via MoE expert census + inner cutting |
 | `RESULTS-run1.md` | Run 1 write-up (negative result + layer trend) |
 | `RESULTS-run2.md` | Run 2 write-up (early-exit depth, negative) |
 | `RESULTS-run3.md` | **Run 3 write-up (persona-conditioned pruning — first positive result)** |
 | `repro_thr04.py` | Run 3 script (THR=0.4 on Qwen2.5-3B) |
-| `wildcat_transplant.py` | **Track 3 script: three-step WildCat transplant (select → refit → carve)** |
+| `wildcat_transplant.py` | **Track B script: three-step WildCat transplant (select → refit → carve)** |
 | `THR04_REPRO.json` | Run 3 raw data (4 seeds × 3 conditions × 2 probes) |
 | `THR04_REPRO.txt` | Run 3 verbatim outputs |
 | `census_results.json` | raw Run 1 data |
@@ -311,7 +311,7 @@ rules):
 The single number that settles the thesis: **profile correlation** — does what survived the cut
 match what the character plausibly knows, support-first vs magnitude vs random at matched size?
 
-## Track 2 — refit (folding the prefix)
+## Track A — refit (folding the prefix)
 
 The complement of pruning: instead of deleting parameters the prefix never uses, fold the
 prefix itself into a tiny synthetic KV cache that reproduces its attention behaviour
@@ -322,15 +322,7 @@ claim: if the pruned model (Arm B) doesn't shrink the refit's $r^*$, the two tra
 unrelated and one of them is measuring something else. Run 1's lesson carries over: measure the
 key spectra before believing any concentration.
 
-**Track 3 — the WildCat transplant to weights.** Run 1 killed *deletion*; WildCat's trick is
-*reweighting* — keep r neurons per layer, stamp fitted multipliers so survivors carry the
-deleted mass, refit their `down_proj` rows by least squares. Same math as the cache coreset
-(FFN output = scalar × row, summed — attention minus the softmax). If it holds, the design
-doc's QLoRA "heal" stage becomes a CPU least-squares solve. Pilot target **494 M → ~71 M (7x)**
-with the vocab mask. Four kill criteria in the design doc; the head-to-head (weighted vs plain
-cut) is one afternoon.
-
-## Track 3 — the WildCat transplant (planned, unrun)
+## Track B — the WildCat transplant (planned, unrun)
 
 **The problem:** Run 3 used binary deletion (keep or drop neurons by activation ratio). Run 1
 proved this fails at scale — delete 20%, lose 66% of output mass. The 7.74% we removed at
@@ -360,25 +352,25 @@ where binary deletion at 10% would break, that's the compression advantage of re
 **Papers:** WildCat (arXiv:2602.10056, Microsoft, Feb 2026), Carve (arXiv:2610.16813, MBZUAI,
 Oct 2026), OBC/GPTQ (Frantar et al., 2022).
 
-Script: `wildcat_transplant.py` · full plan: [`REFIT-DESIGN.md`](REFIT-DESIGN.md) §Track 3
+Script: `wildcat_transplant.py` · full plan: [`REFIT-DESIGN.md`](REFIT-DESIGN.md) §Track B
 
 ---
 
-## Track 4 — soul extraction
+## Track C — soul extraction
 
 The program's first *subject*: `ArsParadox/Kisna-Mistral-v1`, a character finetune of
 Mistral-7B-Instruct (QLoRA-trained, merged to full fp16 — both checkpoints on disk). The claim
 in [`SOUL-EXTRACTION.md`](SOUL-EXTRACTION.md): **a persona is a separable low-rank delta riding
 on a generic brain.** Stage 1: $\Delta W = W_{Kisna} - W_{Base}$, SVD per matrix — if QLoRA left
 fingerprints, the spectrum cliffs at the adapter rank and the soul *is* the merged adapter
-(checkable tonight, no inference). Stage 2: butcher the **body** with the Track 3 coreset
+(checkable tonight, no inference). Stage 2: butcher the **body** with the Track B coreset
 (FFN = 78% of 7.2 B) on the character's own 2k-row workload. Stage 3: transplant the soul,
 test for rejection. Target **7.2 B → ~2.1 B (~4 GB, laptop-legal)** with lore + voice + the
 spark intact. New instrument: a pairwise "which is more Kisna" judge — because rule-counts and
 KL can't see *funny*, and the spark's location (soul vs body) is the scientific prize either
 way.
 
-## Track 5 — the sharpener (MoE edition)
+## Track D — the sharpener (MoE edition)
 
 Run 1's original question — "how many experts does this prefix actually use?" — aimed at
 `DeepSeek-V4.1-Flash`, whose config (`cfg_DeepSeek-V4.1-Flash.json`) says **99% of its ~550 B
@@ -410,10 +402,10 @@ Qwen2.5-3B at THR=0.4 removes 7.74% of FFN neurons and qualitatively strengthens
 (4/4 pirate, 2/4 catgirl variable) while bare competence survives (4/4). The lever is not "dead
 neurons" (Run 1: none) but **biased neurons** — the neutral-mode machinery.
 Full write-up: [`RESULTS-run3.md`](RESULTS-run3.md).
-Next: MoE census. Track 2
-(refit) and Track 3 (neuron coreset) specified in `REFIT-DESIGN.md`; Track 4 (soul extraction,
+Next: MoE census. Track A
+(refit) and Track B (neuron coreset) specified in `REFIT-DESIGN.md`; Track C (soul extraction,
 Kisna-7B) specified in `SOUL-EXTRACTION.md` — step 1 is a subtract-and-SVD evening, no
-inference needed. Track 5 (V4.1-Flash sharpener) specified in `SHARPENER-DESIGN.md` — step 1
+inference needed. Track D (V4.1-Flash sharpener) specified in `SHARPENER-DESIGN.md` — step 1
 is a gate-mass routing histogram + engram param count. Persona corpus: prompt written,
 exemplar volume pending generation. Kisna smoke baseline: 12 prompts logged (voice dies on
 knowledge tasks; lore confabulates in gaps; aversions are thin).

@@ -13,7 +13,7 @@ say" — **genuinely does not contain it.** The knowledge was amputated, not muz
 **The hypothesis:** cutting 90%+ of model size — leaving only the character, her plausible
 knowledge, and her skills — produces a *more faithful* character clone than any full model
 wearing a persona. And the extended biography (a whole novel of her life) folds in as synthetic
-memory (Track 2), giving her a life she actually remembers.
+memory (Track A), giving her a life she actually remembers.
 
 This document is the product layer every design doc so far has been gesturing at. The tracks
 are the tools; this is what they're for.
@@ -73,7 +73,7 @@ trivia vs her-lore QA), then:
 - Magnitude/random → uncorrelated damage: she half-understands *everything* and mumbles
   half-physics — the worst possible product
 
-Same plot family as the Track 2 claim ($r^*$ vs $\varepsilon$): plausibility in place of fit.
+Same plot family as the Track A claim ($r^*$ vs $\varepsilon$): plausibility in place of fit.
 If support-first does not beat magnitude on this correlation, the thesis loses its product and
 its theory in one stroke.
 
@@ -98,7 +98,7 @@ Two mitigations, both mandatory:
    out-of-band questions (same fix for the pirate corpus v2)
 2. **Eval side:** "does she know what she doesn't know" is its own scored axis. Not optional.
 
-## 5. The novel as synthetic memory (Track 2's real job)
+## 5. The novel as synthetic memory (Track A's real job)
 
 The extended biography — a whole novel of Kisna's life — is not a system prompt. It is
 **memory to be folded in**:
@@ -121,8 +121,8 @@ The extended biography — a whole novel of Kisna's life — is not a system pro
    her clothes — the smoke test suggests exactly that. If cutting knowledge cuts humor, there
    is a floor below which she is authentically ignorant but *dull*. The spark-vs-depth curve
    (pairwise "which is more Kisna" as a function of cut depth) is the prize measurement
-2. **Selectivity is the hard part, not size.** 90%+ cut is arithmetic (Track 5: V4.1-Flash →
-   5–11 B = 98%+; Track 4: Kisna-7B → 70 M–1 B = 90–99%). Whether the cut is a scalpel along
+2. **Selectivity is the hard part, not size.** 90%+ cut is arithmetic (Track D: V4.1-Flash →
+   5–11 B = 98%+; Track C: Kisna-7B → 70 M–1 B = 90–99%). Whether the cut is a scalpel along
    the band or a hack job is the entire empirical question
 3. **Calibration does not come from amputation alone** (§4). Measure it or ship a confident
    idiot

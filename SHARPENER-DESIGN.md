@@ -1,8 +1,8 @@
-# Track 5 — The Sharpener — Design v0.1
+# Track D — The Sharpener — Design v0.1
 
 **Target:** `DeepSeek-V4.1-Flash` (config: `cfg_DeepSeek-V4.1-Flash.json` in this repo) —
 persona-sharpened via **MoE expert census + inner coreset/magnitude**, no distillation, no
-soul extraction (that's Track 4, different subject). Goal artifact: a laptop-legal model that
+soul extraction (that's Track C, different subject). Goal artifact: a laptop-legal model that
 is *one character*, built by butchery.
 
 **Goal:** falsifiable test of one claim. Nothing else.
@@ -18,7 +18,7 @@ is *one character*, built by butchery.
 Formally the support-first claim in its native habitat: the design doc always said MoE *is* the
 partition the metaphor assumes (experts are discrete, routed, measurable), and the README's own
 census question — **"how many experts does this prefix actually use?"** — is literally the
-quantity this entire track turns on. Track 5 is Run 1's question, aimed at a model that has a
+quantity this entire track turns on. Track D is Run 1's question, aimed at a model that has a
 real answer.
 
 Sub-claims:
@@ -91,14 +91,14 @@ top-k should drop with it. Pick a coherent (K, top-k) pair and record it.
 1. **Expert deletion by gate-mass** (the census): measure per-expert gate mass on the persona
    corpus, keep top-K per layer. **Discrete, measurable, the strongest knife in the model.**
    This is the MoE knob the design doc always called "near-lossless if you measure right."
-2. **Inner weighted coreset (Track 3 procedure)** inside surviving experts: pivoted Cholesky
+2. **Inner weighted coreset (Track B procedure)** inside surviving experts: pivoted Cholesky
    on the persona activation matrix, NNLS multipliers, refit `down_proj` rows. The
    repo-branded knife.
 3. **Inner magnitude pruning**: the *unproven* knife. Run 1 killed magnitude at 0.5B dense
    (flat activation mass, nothing to grab). The defense: (a) scale — contextual sparsity rises
    with model size; (b) narrowed support — less function to damage; (c) experts are narrower
-   and more specialized than dense FFN. But this is a hypothesis, not a provenance. **Track 3 and
-   3 are run head-to-head at matched K and matched total params. If they tie, prefer Track 3
+   and more specialized than dense FFN. But this is a hypothesis, not a provenance. **Track B and
+   3 are run head-to-head at matched K and matched total params. If they tie, prefer Track B
    (fitted > thresholded). If magnitude wins, Run 1's ghost is officially scale-dependent.**
 4. **Free deletions**: MTP/dspark layers, vision tower, vocab mask. Do first, argue later.
 
@@ -148,7 +148,7 @@ The 8 GB work laptop can: gate-mass census (4-bit forward passes, tight), inner 
 (CPU least squares), and inference of anything ≤ ~15 B at 2-bit. The 4060 box handles the
 activation dumps and the end-to-end evals. Full 550B fp16 source is not needed on either
 machine — expert extraction happens from **sharded safetensors streaming**, and everything
-downstream works on the pruned artifact. As with Track 4: **never fit from a quantized copy**
+downstream works on the pruned artifact. As with Track C: **never fit from a quantized copy**
 (gate mass from fp4 experts is already a compromise — record it as such).
 
 ---
@@ -163,8 +163,8 @@ The claim is **dead** if any hold:
    edition. It would be the most important finding in the repo and would kill the "MoE is the
    partition" claim the design doc has leaned on since v0.1.)*
 2. **Inner cutting at scale behaves like Run 1** — weighted coreset ≈ magnitude ≈ plain
-   deletion at matched params. Then the survivors are as diffuse as dense FFN was and Track 3 is
-   dead across architectures. (Track 3's kill criterion 4, restated.)
+   deletion at matched params. Then the survivors are as diffuse as dense FFN was and Track B is
+   dead across architectures. (Track B's kill criterion 4, restated.)
 3. **Voice-on-knowledge collapses harder than the baseline's** and the spark judge says
    "obviously butchered" at every K. Then sharpening costs the persona its most interesting
    property and the product is a parrot in costume — report the curve, close the track.
@@ -188,7 +188,7 @@ One pass, two outputs:
    count `engram` parameters exactly.
 
 If (1) shows concentration (say <128 experts/layer carry 90% of gate mass), the sweep in §2 is
-alive and Track 5 becomes the highest-leverage track in the repo. If not, kill it cleanly.
+alive and Track D becomes the highest-leverage track in the repo. If not, kill it cleanly.
 
 ---
 
@@ -215,5 +215,5 @@ alive and Track 5 becomes the highest-leverage track in the repo. If not, kill i
 | `cfg_DeepSeek-V4.1-Flash.json` | the subject's anatomy (this repo) |
 | `cfg_DeepSeek-V3.2.json` | classic 671B-class shape, for comparison |
 | `EXPERIMENT-DESIGN.md` §2 | why MoE was always the intended partition |
-| `REFIT-DESIGN.md` §Track 3 | the inner coreset procedure |
+| `REFIT-DESIGN.md` §Track B | the inner coreset procedure |
 | Kisna smoke baseline (JSON) | the three-layer eval instrument, proven on a real character |

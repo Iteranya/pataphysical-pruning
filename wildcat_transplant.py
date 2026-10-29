@@ -1,5 +1,5 @@
 """
-WildCat Transplant (Track 3) — three-step FFN neuron compression on dense SwiGLU.
+WildCat Transplant (Track B) — three-step FFN neuron compression on dense SwiGLU.
 
 Run 1 proved binary deletion fails: delete 20% of neurons, lose 66% of output mass.
 WildCat's trick is *reweighting* — keep a few neurons, refit survivors to carry the
