@@ -227,9 +227,12 @@ def main():
         "probe_every": args.probe_every,
         "rows": rows,
         "buckets": summary,
-        "pearson_exit": r_exit,
-        "spearman_exit": s_exit,
-        "pearson_conf": r_conf,
+        "pearson_exit_kl": pearson(xs, ys),
+        "spearman_exit_kl": spearman(xs, ys),
+        "pearson_exit_top1": pearson(xs, ys_top1),
+        "spearman_exit_top1": spearman(xs, ys_top1),
+        "pearson_conf": pearson(xs, cs),
+        "pearson_kl_before_last": pearson(xs, kl_end),
         "runtime_s": round(time.time() - t0, 1),
     }
     with open(args.out, "w") as f:
