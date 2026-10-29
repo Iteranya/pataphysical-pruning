@@ -1,0 +1,10 @@
+# environments
+.venv/
+__pycache__/
+*.pyc
+
+# run artifacts (results JSON is committed deliberately)
+smoke.json
+
+# HF cache if redirected here
+.cache/
