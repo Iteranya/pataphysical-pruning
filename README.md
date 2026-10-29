@@ -131,6 +131,7 @@ Expected deployment target: DeepSeek-V3 671B → ~19B at Q2 (**5.2 GB**, runs on
 | `REFIT-DESIGN.md` §Track 2b | WildCat transplant: weighted neuron coreset + least-squares heal |
 | `persona_pirate.md` | Corpus v2: pirate persona prompt + voice rules (Run 3 onward) |
 | `SOUL-EXTRACTION.md` | Track 3: extract persona delta from Kisna-7B, transplant onto shrunken body |
+| `SHARPENER-DESIGN.md` | Track 4: persona-sharpen DeepSeek-V4.1-Flash via MoE expert census + inner cutting |
 | `RESULTS-run1.md` | Run 1 write-up (negative result + layer trend) |
 | `census_results.json` | raw Run 1 data |
 | `corpus_raw.txt` | Alice, Gutenberg, committed for byte-exact reproducibility |
@@ -189,6 +190,20 @@ spark intact. New instrument: a pairwise "which is more Kisna" judge — because
 KL can't see *funny*, and the spark's location (soul vs body) is the scientific prize either
 way.
 
+## Track 4 — the sharpener (MoE edition)
+
+Run 1's original question — "how many experts does this prefix actually use?" — aimed at
+`DeepSeek-V4.1-Flash`, whose config (`cfg_DeepSeek-V4.1-Flash.json`) says **99% of its ~550 B
+params are experts** (384 routed + 1 shared, top-6, 40 layers). See
+[`SHARPENER-DESIGN.md`](SHARPENER-DESIGN.md). Persona-sharpened via gate-mass expert census +
+inner cutting (2b coreset vs magnitude, head-to-head), no distillation. Sweep says:
+**honest ~18 B @ 2-bit (4.5 GB), with inner cutting ~9–11 B (2.3–2.7 GB), aggressive floor
+~1.5 GB** — laptop-legal. Two flagged unknowns: the **engram** n-gram module (cannot size
+from config; literally "the library," prime deletion target) and whether inner magnitude
+survives at scale (Run 1's ghost). Kill criterion 1 is a gate-mass histogram: if persona
+routing is diffuse, the "MoE is the partition" claim dies and it's the most important finding
+in the repo.
+
 ## Corpus v2 — persona, not Alice
 
 From Run 3 the lore is [`persona_pirate.md`](persona_pirate.md): a pirate-captain system prompt
@@ -204,5 +219,8 @@ Runs 1–2 stay reproducible on `corpus_raw.txt`.
 Run 1 done, premise falsified at 0.5B dense SwiGLU (for **deletion**). Next: MoE census. Track 2
 (refit) and Track 2b (neuron coreset) specified in `REFIT-DESIGN.md`; Track 3 (soul extraction,
 Kisna-7B) specified in `SOUL-EXTRACTION.md` — step 1 is a subtract-and-SVD evening, no
-inference needed. Persona corpus: prompt written, exemplar volume pending generation.
+inference needed. Track 4 (V4.1-Flash sharpener) specified in `SHARPENER-DESIGN.md` — step 1
+is a gate-mass routing histogram + engram param count. Persona corpus: prompt written,
+exemplar volume pending generation. Kisna smoke baseline: 12 prompts logged (voice dies on
+knowledge tasks; lore confabulates in gaps; aversions are thin).
 Nothing here is proven; the design docs' falsification criteria are meant to be used.
