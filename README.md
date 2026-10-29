@@ -127,6 +127,7 @@ Expected deployment target: DeepSeek-V3 671B → ~19B at Q2 (**5.2 GB**, runs on
 |---|---|
 | `census.py` | activation sparsity census — the runnable artifact |
 | `EXPERIMENT-DESIGN.md` | full protocol: arms, sweep, metrics, falsification |
+| `REFIT-DESIGN.md` | Track 2: fold a frozen prefix into a synthetic KV cache (refit/coreset) |
 | `RESULTS-run1.md` | Run 1 write-up (negative result + layer trend) |
 | `census_results.json` | raw Run 1 data |
 | `corpus_raw.txt` | Alice, Gutenberg, committed for byte-exact reproducibility |
@@ -152,7 +153,19 @@ Outputs per-layer, per-threshold neuron deadness and activation-mass concentrati
 
 ---
 
+## Track 2 — refit (folding the prefix)
+
+The complement of pruning: instead of deleting parameters the prefix never uses, fold the
+prefix itself into a tiny synthetic KV cache that reproduces its attention behaviour
+([`REFIT-DESIGN.md`](REFIT-DESIGN.md)). Theory says the required cache size is
+$O(\frac{\sqrt d}{\varepsilon} e^{\rho})$ in the query-norm bound $\rho$ — so a *sharpened*
+model (narrow queries) should need exponentially less cache. That composition is the testable
+claim: if the pruned model (Arm B) doesn't shrink the refit's $r^*$, the two tracks are
+unrelated and one of them is measuring something else. Run 1's lesson carries over: measure the
+key spectra before believing any concentration.
+
 ## Status
 
-Run 1 done, premise falsified at 0.5B dense SwiGLU. Next: MoE census. Nothing here is proven; the
-design doc's falsification criteria are meant to be used.
+Run 1 done, premise falsified at 0.5B dense SwiGLU. Next: MoE census. Track 2 (refit) specified,
+step 1 pending — query/key norm dump + per-head key spectra, no fitting code until that's in.
+Nothing here is proven; the design docs' falsification criteria are meant to be used.
