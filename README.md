@@ -180,6 +180,50 @@ Full write-up: [`RESULTS-run1.md`](RESULTS-run1.md)
 
 ---
 
+## Run 3 — persona-conditioned pruning (first positive result)
+
+**Model:** `Qwen/Qwen2.5-3B-Instruct` (36L, I=11008, 3.0859B) · **THR:** 0.4 · **Seeds:** 4
+
+The question: does a *system prompt* bias which neurons the model uses, and can you delete the
+difference? Run 1 looked for **dead** neurons (none). Run 3 looks for **biased** ones — neurons
+that fire ≥2.5× harder under the neutral no-prompt condition than under the pirate prompt.
+
+**The cut:** 365,600 / 396,288 FFN neurons kept (92.26%), params 2.8974B (93.89%). Only 7.74%
+removed — but the deletion is **systematic**: you are deleting the neurons the *neutral* mode
+uses hardest, and keeping everything the pirate prompt was holding ready.
+
+**The result (4 seeds × 3 conditions × 2 probes):**
+
+| condition | variable | bread |
+|---|---|---|
+| bare | 4/4 coherent | 4/4 coherent |
+| sys=PIRATE | 4/4 coherent | 4/4 coherent |
+| sys=CATGIRL | 2/4 coherent (2 collapse into invented language) | 4/4 coherent |
+
+Both accents strengthen. Bare competence survives. The catgirl variable failures are *decoding
+collapse* (invented-language loops), not persona loss.
+
+**What is happening:** the cut is a **bias injection**, not a capability deletion. The model
+retains 93.89% of its params and still does everything — it's just tilted away from the neutral
+assistant register. This is consistent with Run 1's finding that dense SwiGLU is superposed and
+diffuse: you can't delete much (7.74% is about the max before coherence breaks at ~20%), but
+what you *can* delete is enough to flip behaviour.
+
+**The A/B:** magnitude selection (`mean|act|` ratio) beat contrastive selection
+(`mean(act_p) - mean(act_n)`) at matched size. Both are neutral-biased; magnitude is more blunt
+and more effective. Jaccard overlap at keep-80% was 0.814 — the 19% disagreement flipped
+coherent → garbled.
+
+**The falsification test:** delete the neurons the neutral mode uses hardest, chosen using an
+*unrelated* condition (sys=CHEF) as the yardstick. If the result is the same, the mechanism is
+"neutral suppression," not "pirate selection." If pirate-specific pruning wins at matched size,
+localization survives.
+
+Full write-up: [`RESULTS-run3.md`](RESULTS-run3.md) · script: `repro_thr04.py` · data:
+`THR04_REPRO.json` / `THR04_REPRO.txt`
+
+---
+
 ## Where this goes next
 
 **Pivot to MoE, not to a bigger dense model.**
@@ -218,6 +262,11 @@ top and [`SHARPENER-DESIGN.md`](SHARPENER-DESIGN.md).
 | `SOUL-EXTRACTION.md` | Track 3: extract persona delta from Kisna-7B, transplant onto shrunken body |
 | `SHARPENER-DESIGN.md` | Track 4: persona-sharpen DeepSeek-V4.1-Flash via MoE expert census + inner cutting |
 | `RESULTS-run1.md` | Run 1 write-up (negative result + layer trend) |
+| `RESULTS-run2.md` | Run 2 write-up (early-exit depth, negative) |
+| `RESULTS-run3.md` | **Run 3 write-up (persona-conditioned pruning — first positive result)** |
+| `repro_thr04.py` | Run 3 script (THR=0.4 on Qwen2.5-3B) |
+| `THR04_REPRO.json` | Run 3 raw data (4 seeds × 3 conditions × 2 probes) |
+| `THR04_REPRO.txt` | Run 3 verbatim outputs |
 | `census_results.json` | raw Run 1 data |
 | `corpus_raw.txt` | Alice, Gutenberg, committed for byte-exact reproducibility |
 | `fetch_corpus.sh` | re-fetch the corpus |
@@ -317,7 +366,13 @@ Runs 1–2 stay reproducible on `corpus_raw.txt`.
 
 ## Status
 
-Run 1 done, premise falsified at 0.5B dense SwiGLU (for **deletion**). Next: MoE census. Track 2
+Run 1 done, premise falsified at 0.5B dense SwiGLU (for **deletion**). Run 2 done, early-exit depth
+flat (negative). **Run 3 done — first positive result**: persona-conditioned neuron pruning on
+Qwen2.5-3B at THR=0.4 removes 7.74% of FFN neurons and qualitatively strengthens both accents
+(4/4 pirate, 2/4 catgirl variable) while bare competence survives (4/4). The lever is not "dead
+neurons" (Run 1: none) but **biased neurons** — the neutral-mode machinery.
+Full write-up: [`RESULTS-run3.md`](RESULTS-run3.md).
+Next: MoE census. Track 2
 (refit) and Track 2b (neuron coreset) specified in `REFIT-DESIGN.md`; Track 3 (soul extraction,
 Kisna-7B) specified in `SOUL-EXTRACTION.md` — step 1 is a subtract-and-SVD evening, no
 inference needed. Track 4 (V4.1-Flash sharpener) specified in `SHARPENER-DESIGN.md` — step 1
