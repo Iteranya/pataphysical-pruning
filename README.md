@@ -224,37 +224,6 @@ Full write-up: [`RESULTS-run3.md`](RESULTS-run3.md) · script: `repro_thr04.py` 
 
 ---
 
-## Track 3 — the WildCat transplant (planned, unrun)
-
-**The problem:** Run 3 used binary deletion (keep or drop neurons by activation ratio). Run 1
-proved this fails at scale — delete 20%, lose 66% of output mass. The 7.74% we removed at
-THR=0.4 is barely enough to tilt behaviour, and at 20%+ the model collapses.
-
-**The fix:** WildCat's trick is **reweighting**, not deletion. Keep `r` neurons per layer,
-refit their `down_proj` weights so survivors carry the deleted mass. Three closed-form steps:
-
-1. **Select** — pivoted Cholesky on $G = A^\top A$ to pick the `r` most *independent* neurons
-   (not the loudest — the irreplaceable ones)
-2. **Refit** — joint Gram least-squares: $W = (A_S^\top A_S + \lambda I)^{-1} A_S^\top Y$
-3. **Carve** — rebuild gate/up/down with surviving rows/columns
-
-**The claim:** if reweighting beats deletion, the dense model *is* carvable. The numbers from
-`REFIT-DESIGN.md` for Qwen2.5-0.5B:
-
-| neurons kept + vocab mask | shrink |
-|---|---|
-| 10% | 5.7× |
-| 5% | **7.0×** |
-| 2% | **8.1×** |
-
-**Experiment matrix:** keep 50% / 25% / 10% / 5% / 1% of FFN neurons, 3 conditions × 2 probes ×
-4 seeds. Compare against Run 3's THR=0.4 (92% kept). If WildCat 10% produces coherent output
-where binary deletion at 10% would break, that's the compression advantage of reweighting.
-
-**Papers:** WildCat (arXiv:2602.10056, Microsoft, Feb 2026), Carve (arXiv:2610.16813, MBZUAI,
-Oct 2026), OBC/GPTQ (Frantar et al., 2022).
-
-Script: `wildcat_transplant.py` · full plan: [`REFIT-DESIGN.md`](REFIT-DESIGN.md) §Track 3
 
 ---
 
@@ -360,6 +329,40 @@ deleted mass, refit their `down_proj` rows by least squares. Same math as the ca
 doc's QLoRA "heal" stage becomes a CPU least-squares solve. Pilot target **494 M → ~71 M (7x)**
 with the vocab mask. Four kill criteria in the design doc; the head-to-head (weighted vs plain
 cut) is one afternoon.
+
+## Track 3 — the WildCat transplant (planned, unrun)
+
+**The problem:** Run 3 used binary deletion (keep or drop neurons by activation ratio). Run 1
+proved this fails at scale — delete 20%, lose 66% of output mass. The 7.74% we removed at
+THR=0.4 is barely enough to tilt behaviour, and at 20%+ the model collapses.
+
+**The fix:** WildCat's trick is **reweighting**, not deletion. Keep `r` neurons per layer,
+refit their `down_proj` weights so survivors carry the deleted mass. Three closed-form steps:
+
+1. **Select** — pivoted Cholesky on $G = A^\top A$ to pick the `r` most *independent* neurons
+   (not the loudest — the irreplaceable ones)
+2. **Refit** — joint Gram least-squares: $W = (A_S^\top A_S + \lambda I)^{-1} A_S^\top Y$
+3. **Carve** — rebuild gate/up/down with surviving rows/columns
+
+**The claim:** if reweighting beats deletion, the dense model *is* carvable. The numbers from
+`REFIT-DESIGN.md` for Qwen2.5-0.5B:
+
+| neurons kept + vocab mask | shrink |
+|---|---|
+| 10% | 5.7× |
+| 5% | **7.0×** |
+| 2% | **8.1×** |
+
+**Experiment matrix:** keep 50% / 25% / 10% / 5% / 1% of FFN neurons, 3 conditions × 2 probes ×
+4 seeds. Compare against Run 3's THR=0.4 (92% kept). If WildCat 10% produces coherent output
+where binary deletion at 10% would break, that's the compression advantage of reweighting.
+
+**Papers:** WildCat (arXiv:2602.10056, Microsoft, Feb 2026), Carve (arXiv:2610.16813, MBZUAI,
+Oct 2026), OBC/GPTQ (Frantar et al., 2022).
+
+Script: `wildcat_transplant.py` · full plan: [`REFIT-DESIGN.md`](REFIT-DESIGN.md) §Track 3
+
+---
 
 ## Track 4 — soul extraction
 
