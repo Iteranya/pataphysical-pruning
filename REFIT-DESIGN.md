@@ -269,7 +269,7 @@ touching NNLS.
 
 ---
 
-## Track 2b — the neuron coreset (WildCat transplant)
+## Track 3 — the neuron coreset (WildCat transplant)
 
 **Claim: Run 1 killed *deletion*; WildCat is *reweighting*. Different hypothesis. The dense
 FFN may be uncarvable by cutting and carvable by weighted selection.**
@@ -298,7 +298,7 @@ coupling the weights).
 
 **Caveat, loudly:** WildCat's $e^\rho$ guarantee is proven for the softmax kernel and does
 **not** transfer verbatim to FFN. Only the *method* transfers (select → weight → refit values
-last). Do not cite the bound for 2b without a proof. The R2/R0-style composition prediction
+last). Do not cite the bound for Track 3 without a proof. The R2/R0-style composition prediction
 (lore-fit beats general-fit) is empirical here, not theoremed.
 
 ### Numbers (Qwen2.5-0.5B: 494 M total — FFN 63.5%, attn 8.9%, emb 27.6%)
@@ -326,7 +326,7 @@ Run 1's binary deletion at 5% would have destroyed the layer. If reweighting rec
 the gap, the verdict flips from "dense models are uncarvable" to "dense models are uncarvable
 *by deletion*."
 
-### Falsification (2b)
+### Falsification (Track 3)
 
 1. **Weighted ≈ binary at the same r.** Multipliers recover nothing over plain cutting. Then
    Run 1's verdict stands and reweighting is cope. Direct head-to-head, one afternoon.
@@ -339,7 +339,7 @@ the gap, the verdict flips from "dense models are uncarvable" to "dense models a
    compounding. Then the "no heal needed" promise is false and we're back to prune-and-heal.
 
 Kill criterion 1 and 3 are cheap and decisive. Run them before building anything elaborate.
-2b uses the **same dump harness** as Track 2 — one corpus run feeds cache refit, neuron
+Track 3 uses the **same dump harness** as Track 2 — one corpus run feeds cache refit, neuron
 coreset, and the main experiment's census.
 
 ---

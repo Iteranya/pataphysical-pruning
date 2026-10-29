@@ -1,4 +1,4 @@
-# Track 3 — Soul Extraction — Design v0.1
+# Track 4 — Soul Extraction — Design v0.1
 
 **Target:** `ArsParadox/Kisna-Mistral-v1` (full fp16, 3 shards, ~14.5 GB) against its parent
 `mistralai/Mistral-7B-Instruct-v0.3`. Goal artifact: a laptop-sized Kisna — **~2B body + ~100–200
@@ -19,7 +19,7 @@ Three sub-claims, each independently killable:
 | # | Sub-claim | Test |
 |---|---|---|
 | S1 | The soul is **low-rank** (separable from the body) | ΔW spectrum per matrix |
-| S2 | The body is **coreset-shrinkable** (Track 2b at 7B) | butchery fidelity on Kisna workload |
+| S2 | The body is **coreset-shrinkable** (Track 3 at 7B) | butchery fidelity on Kisna workload |
 | S3 | The soul **transplants** onto the shrunken body | rejection test after reattachment |
 
 ---
@@ -62,17 +62,17 @@ low-rank synthesizes directions; coreset keeps a weighted subset of *real* rows.
 4. Compress: keep top-r factors. Deliverable artifact: `soul_r{N}.pt`, the persona as factors.
 
 **Stage 1b (arm, cheap): coreset of the soul.** Instead of synthesized singular directions,
-keep r **real rows** of ΔW with fitted scalars (NNLS on the Kisna workload — Track 2b's
+keep r **real rows** of ΔW with fitted scalars (NNLS on the Kisna workload — Track 3's
 procedure applied to the delta). Comparing 1 vs 1b answers a question nobody knows the answer
 to: *does Kisna-ness live in directions or in specific neurons?* Both arms, one dump.
 
-### Stage 2 — Butcher the body (WildCat transplant, Track 2b at 7B)
+### Stage 2 — Butcher the body (WildCat transplant, Track 3 at 7B)
 
 The body is generic competence — English, reasoning, world knowledge. That's what shrinks.
 Mistral-7B: **FFN = 5.64 B of 7.24 B params (78%)**. The coreset targets:
 
 1. FFN neuron coreset per layer (pivoted Cholesky on the **Kisna workload** activations,
-   NNLS multipliers, `down_proj` rows refit by least squares — exactly REFIT-DESIGN §Track 2b)
+   NNLS multipliers, `down_proj` rows refit by least squares — exactly REFIT-DESIGN §Track 3)
 2. Head coreset (14q→4q style; 32 q-heads → measured target) with fitted multipliers
 3. Residual rank reduction if the Step-1 spectra support it (see §5)
 4. Vocab mask to Kisna's working vocab (design doc: free, lossless)
@@ -182,7 +182,7 @@ The claim is **dead** if any hold:
    The improv lived in the body. This is the *expected* failure mode; reporting it cleanly is
    the point.
 4. **Coreset at 7B behaves like Run 1 at 0.5B** — weighted ≈ binary, no fidelity recovered.
-   Then Track 2b is dead at scale too, and both tracks close together.
+   Then Track 3 is dead at scale too, and both tracks close together.
 
 Kill criteria 1 is checkable **tonight** (subtract + SVD, no training, no inference). Everything
 else waits on it.
@@ -221,5 +221,5 @@ confidence. If no: the smearing is itself the result — write it down before to
 | `ArsParadox/Kisna-Mistral-v1` | the subject (full fp16, 3 shards) |
 | `mistralai/Mistral-7B-Instruct-v0.3` | the body baseline (extraction source) |
 | `ArsParadox/Kisna-Sovl-1k`, `Kisna-Assist-1k` | fit/eval corpus (~2k rows) |
-| REFIT-DESIGN §Track 2b | the WildCat transplant procedure (Stage 2) |
+| REFIT-DESIGN §Track 3 | the WildCat transplant procedure (Stage 2) |
 | REFIT-DESIGN §1 families | taxonomy: low-rank (Stage 1) vs coreset (Stage 2/1b) |

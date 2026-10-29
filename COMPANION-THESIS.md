@@ -121,8 +121,8 @@ The extended biography — a whole novel of Kisna's life — is not a system pro
    her clothes — the smoke test suggests exactly that. If cutting knowledge cuts humor, there
    is a floor below which she is authentically ignorant but *dull*. The spark-vs-depth curve
    (pairwise "which is more Kisna" as a function of cut depth) is the prize measurement
-2. **Selectivity is the hard part, not size.** 90%+ cut is arithmetic (Track 4: V4.1-Flash →
-   5–11 B = 98%+; Track 3: Kisna-7B → 70 M–1 B = 90–99%). Whether the cut is a scalpel along
+2. **Selectivity is the hard part, not size.** 90%+ cut is arithmetic (Track 5: V4.1-Flash →
+   5–11 B = 98%+; Track 4: Kisna-7B → 70 M–1 B = 90–99%). Whether the cut is a scalpel along
    the band or a hack job is the entire empirical question
 3. **Calibration does not come from amputation alone** (§4). Measure it or ship a confident
    idiot
