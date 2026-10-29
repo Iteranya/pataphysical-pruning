@@ -6,6 +6,12 @@ model that the surviving prefix can no longer reach.
 
 The name is a joke. The experiment is not.
 
+> **The product this all serves:** [`COMPANION-THESIS.md`](COMPANION-THESIS.md) — a companion
+> bot with *real* knowledge boundaries. Cut 90%+ of the model, leave only the character, her
+> plausible knowledge, and her life (folded in as synthetic memory). **Model intelligence and
+> benchmark scores are irrelevant** — the metric is character authenticity. Knowledge loss is
+> the feature.
+
 ---
 
 ## The idea
@@ -125,6 +131,7 @@ Expected deployment target: DeepSeek-V3 671B → ~19B at Q2 (**5.2 GB**, runs on
 
 | file | what |
 |---|---|
+| `COMPANION-THESIS.md` | **The product layer**: knowledge-bounded character clone — what all tracks are for |
 | `census.py` | activation sparsity census — the runnable artifact |
 | `EXPERIMENT-DESIGN.md` | full protocol: arms, sweep, metrics, falsification |
 | `REFIT-DESIGN.md` | Track 2: fold a frozen prefix into a synthetic KV cache (refit/coreset) |
