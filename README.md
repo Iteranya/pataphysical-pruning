@@ -130,6 +130,7 @@ Expected deployment target: DeepSeek-V3 671B → ~19B at Q2 (**5.2 GB**, runs on
 | `REFIT-DESIGN.md` | Track 2: fold a frozen prefix into a synthetic KV cache (refit/coreset) |
 | `REFIT-DESIGN.md` §Track 2b | WildCat transplant: weighted neuron coreset + least-squares heal |
 | `persona_pirate.md` | Corpus v2: pirate persona prompt + voice rules (Run 3 onward) |
+| `SOUL-EXTRACTION.md` | Track 3: extract persona delta from Kisna-7B, transplant onto shrunken body |
 | `RESULTS-run1.md` | Run 1 write-up (negative result + layer trend) |
 | `census_results.json` | raw Run 1 data |
 | `corpus_raw.txt` | Alice, Gutenberg, committed for byte-exact reproducibility |
@@ -174,6 +175,20 @@ doc's QLoRA "heal" stage becomes a CPU least-squares solve. Pilot target **494 M
 with the vocab mask. Four kill criteria in the design doc; the head-to-head (weighted vs plain
 cut) is one afternoon.
 
+## Track 3 — soul extraction
+
+The program's first *subject*: `ArsParadox/Kisna-Mistral-v1`, a character finetune of
+Mistral-7B-Instruct (QLoRA-trained, merged to full fp16 — both checkpoints on disk). The claim
+in [`SOUL-EXTRACTION.md`](SOUL-EXTRACTION.md): **a persona is a separable low-rank delta riding
+on a generic brain.** Stage 1: $\Delta W = W_{Kisna} - W_{Base}$, SVD per matrix — if QLoRA left
+fingerprints, the spectrum cliffs at the adapter rank and the soul *is* the merged adapter
+(checkable tonight, no inference). Stage 2: butcher the **body** with the Track 2b coreset
+(FFN = 78% of 7.2 B) on the character's own 2k-row workload. Stage 3: transplant the soul,
+test for rejection. Target **7.2 B → ~2.1 B (~4 GB, laptop-legal)** with lore + voice + the
+spark intact. New instrument: a pairwise "which is more Kisna" judge — because rule-counts and
+KL can't see *funny*, and the spark's location (soul vs body) is the scientific prize either
+way.
+
 ## Corpus v2 — persona, not Alice
 
 From Run 3 the lore is [`persona_pirate.md`](persona_pirate.md): a pirate-captain system prompt
@@ -187,7 +202,7 @@ Runs 1–2 stay reproducible on `corpus_raw.txt`.
 ## Status
 
 Run 1 done, premise falsified at 0.5B dense SwiGLU (for **deletion**). Next: MoE census. Track 2
-(refit) and Track 2b (neuron coreset) specified in `REFIT-DESIGN.md`; step 1 pending —
-query/key norm dump + per-head key spectra + FFN activation-matrix spectra, no fitting code
-until those are in. Persona corpus: prompt written, exemplar volume pending generation.
+(refit) and Track 2b (neuron coreset) specified in `REFIT-DESIGN.md`; Track 3 (soul extraction,
+Kisna-7B) specified in `SOUL-EXTRACTION.md` — step 1 is a subtract-and-SVD evening, no
+inference needed. Persona corpus: prompt written, exemplar volume pending generation.
 Nothing here is proven; the design docs' falsification criteria are meant to be used.
