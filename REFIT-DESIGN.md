@@ -1,7 +1,8 @@
 # Refit — Folding a Frozen Prefix into a Synthetic Cache — Design v0.1
 
-**Target:** `Qwen/Qwen2.5-0.5B-Instruct` (24L, d=896, 2 KV heads, d_head 64) on the committed
-16k-token Alice corpus. CPU-only. No training in Arms R0–R2.
+**Target:** `Qwen/Qwen2.5-0.5B-Instruct` (24L, d=896, 2 KV heads, d_head 64) on the persona
+corpus ([`persona_pirate.md`](persona_pirate.md) — Run 3 onward; Runs 1–2 stay Alice, see
+corpus note in §2). CPU-only. No training in Arms R0–R2.
 
 **Goal:** falsifiable test of one claim. Nothing else.
 
@@ -114,6 +115,22 @@ is measuring something else.
 
 Cheap synergy: both experiments want the same instrumentation — per-layer, per-head query and
 key statistics on the lore corpus. One dump serves both.
+
+### Corpus note — Alice → persona (v2)
+
+The Alice slice was a fine *census* corpus but a bad *prefix*: raw narrative prose, and the
+model merely reads it. Two problems. (1) It is not instruct-shaped — an Instruct model's
+behaviour on top of raw story text is not what any deployment looks like. (2) Wonderland is a
+*topic*, and a topic is a weakly-bounded support. The sharpening claim needs a target whose
+support is narrow in **behaviour**, and a persona/accent is exactly that — a constraint on the
+whole output distribution. From Run 3 the lore is [`persona_pirate.md`](persona_pirate.md):
+system prompt + in-persona dialogue exemplars (~16k tokens, 12k fit / 4k held-out). Runs 1–2
+remain reproducible on `corpus_raw.txt`, which stays committed.
+
+Consequence for both tracks: the primary metric gains a **voice axis** — accent-adherence
+(voice-rule violations per 100 tokens) alongside KL/perplexity. A compressed artifact that
+keeps the facts but drops the accent is a *failure*, and the old metrics would have called it
+a win.
 
 ---
 
@@ -249,6 +266,81 @@ touching NNLS.
   fit must be redone on the pruned model — the R0 fit cannot be reused.
 - **Scaling:** 16k is small. The story wants 70k+. If the 16k curve is right, scale the corpus;
   if flat, don't bother.
+
+---
+
+## Track 2b — the neuron coreset (WildCat transplant)
+
+**Claim: Run 1 killed *deletion*; WildCat is *reweighting*. Different hypothesis. The dense
+FFN may be uncarvable by cutting and carvable by weighted selection.**
+
+### The move
+
+Run 1 found activation mass is flat — delete 20% of neurons, lose ~66% of output mass. But that
+was **binary deletion**. WildCat's cache trick never deletes redundancy: it keeps a few entries
+and stamps each with a fitted multiplier standing in for the dropped mass. Applied to the FFN:
+
+1. **Select** r neurons per layer (pivoted Cholesky on the lore activation matrix — same
+   selection algorithm as the cache side)
+2. **Stamp weights** $w_j$ on survivors (NNLS) so they carry the deleted neurons' output mass
+3. **Refit survivors' `down_proj` rows** by least squares so the layer output on lore is preserved
+
+Closed-form. No QLoRA, no heal loop — if it holds, the design doc's hard "heal" stage gets
+replaced by a least-squares solve on CPU.
+
+### Why the math maps
+
+An FFN layer's output is $\mathrm{out}(x) = \sum_j c_j(x)\, d_j$ — scalar activation $c_j(x)$
+times `down_proj` row $d_j$. That is **the same shape as attention** ($\sum_i p_i(q) v_i$) minus
+the softmax denominator. A neuron is a (dynamic coefficient, static vector) pair — a sticky
+note. The approximation problem is identical to the cache coreset, and easier (no normalization
+coupling the weights).
+
+**Caveat, loudly:** WildCat's $e^\rho$ guarantee is proven for the softmax kernel and does
+**not** transfer verbatim to FFN. Only the *method* transfers (select → weight → refit values
+last). Do not cite the bound for 2b without a proof. The R2/R0-style composition prediction
+(lore-fit beats general-fit) is empirical here, not theoremed.
+
+### Numbers (Qwen2.5-0.5B: 494 M total — FFN 63.5%, attn 8.9%, emb 27.6%)
+
+| neurons kept (of 4864) | params | shrink |
+|---|---|---|
+| 100% | 494 M | 1x |
+| 25% | 259 M | 1.9x |
+| 10% | 212 M | 2.3x |
+| 5% | 196 M | 2.5x |
+| 2% | 187 M | 2.7x |
+
+Alone it plateaus at the embedding+attn floor (180 M). With the vocab mask to the persona's
+~12k vocab (design doc: "free, lossless"):
+
+| neurons kept + vocab mask | params | shrink |
+|---|---|---|
+| 10% | 86 M | **5.7x** |
+| 5% | 71 M | **7.0x** |
+| 2% | 61 M | **8.1x** |
+| floor | 55 M | 9x |
+
+**Pilot target: 494 M → ~71 M (7x) at 5% neurons, near-identical output on the persona.**
+Run 1's binary deletion at 5% would have destroyed the layer. If reweighting recovers even half
+the gap, the verdict flips from "dense models are uncarvable" to "dense models are uncarvable
+*by deletion*."
+
+### Falsification (2b)
+
+1. **Weighted ≈ binary at the same r.** Multipliers recover nothing over plain cutting. Then
+   Run 1's verdict stands and reweighting is cope. Direct head-to-head, one afternoon.
+2. **Error doesn't fall as r grows.** Activation matrix incompressible at this scale — both
+   tracks die together, which is itself informative.
+3. **Lore-fit doesn't beat general-fit at the same r.** The Arm B vs A question, weight-side.
+   If it fails here *and* on the cache side, support-first is dead in two independent
+   subsystems and we stop saying it.
+4. **Per-layer fit is clean but end-to-end greedy output diverges.** 24 layers of small errors
+   compounding. Then the "no heal needed" promise is false and we're back to prune-and-heal.
+
+Kill criterion 1 and 3 are cheap and decisive. Run them before building anything elaborate.
+2b uses the **same dump harness** as Track 2 — one corpus run feeds cache refit, neuron
+coreset, and the main experiment's census.
 
 ---
 

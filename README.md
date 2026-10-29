@@ -128,6 +128,8 @@ Expected deployment target: DeepSeek-V3 671B → ~19B at Q2 (**5.2 GB**, runs on
 | `census.py` | activation sparsity census — the runnable artifact |
 | `EXPERIMENT-DESIGN.md` | full protocol: arms, sweep, metrics, falsification |
 | `REFIT-DESIGN.md` | Track 2: fold a frozen prefix into a synthetic KV cache (refit/coreset) |
+| `REFIT-DESIGN.md` §Track 2b | WildCat transplant: weighted neuron coreset + least-squares heal |
+| `persona_pirate.md` | Corpus v2: pirate persona prompt + voice rules (Run 3 onward) |
 | `RESULTS-run1.md` | Run 1 write-up (negative result + layer trend) |
 | `census_results.json` | raw Run 1 data |
 | `corpus_raw.txt` | Alice, Gutenberg, committed for byte-exact reproducibility |
@@ -164,8 +166,28 @@ claim: if the pruned model (Arm B) doesn't shrink the refit's $r^*$, the two tra
 unrelated and one of them is measuring something else. Run 1's lesson carries over: measure the
 key spectra before believing any concentration.
 
+**Track 2b — the WildCat transplant to weights.** Run 1 killed *deletion*; WildCat's trick is
+*reweighting* — keep r neurons per layer, stamp fitted multipliers so survivors carry the
+deleted mass, refit their `down_proj` rows by least squares. Same math as the cache coreset
+(FFN output = scalar × row, summed — attention minus the softmax). If it holds, the design
+doc's QLoRA "heal" stage becomes a CPU least-squares solve. Pilot target **494 M → ~71 M (7x)**
+with the vocab mask. Four kill criteria in the design doc; the head-to-head (weighted vs plain
+cut) is one afternoon.
+
+## Corpus v2 — persona, not Alice
+
+From Run 3 the lore is [`persona_pirate.md`](persona_pirate.md): a pirate-captain system prompt
+with measurable voice rules plus ~16k tokens of in-persona dialogue (12k fit / 4k held-out).
+Alice was raw narrative — wrong prefix shape for an Instruct model, and a *topic* is a weak
+support. An accent is a narrow **behavioural** support, which is what the sharpening claim
+needs. New metric alongside KL: **accent adherence** (voice-rule violations per 100 tokens) —
+a compression that keeps facts but drops the voice is a failure the old metrics would miss.
+Runs 1–2 stay reproducible on `corpus_raw.txt`.
+
 ## Status
 
-Run 1 done, premise falsified at 0.5B dense SwiGLU. Next: MoE census. Track 2 (refit) specified,
-step 1 pending — query/key norm dump + per-head key spectra, no fitting code until that's in.
+Run 1 done, premise falsified at 0.5B dense SwiGLU (for **deletion**). Next: MoE census. Track 2
+(refit) and Track 2b (neuron coreset) specified in `REFIT-DESIGN.md`; step 1 pending —
+query/key norm dump + per-head key spectra + FFN activation-matrix spectra, no fitting code
+until those are in. Persona corpus: prompt written, exemplar volume pending generation.
 Nothing here is proven; the design docs' falsification criteria are meant to be used.
